@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tarea_flutter/hero_dialog_route.dart';
+import 'package:tarea_flutter/app_todo_Popup_card.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,28 +28,28 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class ToDoItemModel {
+class ToDoItem {
   String text;
   int order;
   bool checked;
 
-  ToDoItemModel(this.text, {required this.order, this.checked: false});
+  ToDoItem(this.text, {required this.order, this.checked: false});
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<ToDoItemModel> items = [
-    ToDoItemModel('A', order: 0, checked: true),
-    ToDoItemModel('B', order: 1),
-    ToDoItemModel('C', order: 2),
+  List<ToDoItem> items = [
+    ToDoItem('A', order: 0, checked: true),
+    ToDoItem('B', order: 1),
+    ToDoItem('C', order: 2),
   ];
 
-  updateList(e) {
+  updateList() {
     setState(() {
-      List<ToDoItemModel> checkeds =
+      List<ToDoItem> checkeds =
           this.items.where((element) => element.checked).toList();
       checkeds.sort((a, b) => a.order - b.order);
 
-      List<ToDoItemModel> uncheckeds =
+      List<ToDoItem> uncheckeds =
           this.items.where((element) => !element.checked).toList();
       uncheckeds.sort((a, b) => a.order - b.order);
 
@@ -55,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
       this.items.addAll([...uncheckeds, ...checkeds]);
     });
   }
+
+  final textCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -89,14 +93,58 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: Icon(Icons.more_vert)),
               onTap: () {
                 e.checked = !e.checked;
-                updateList(e);
+                updateList();
               })),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 14.0),
+        child: GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(HeroDialogRoute(builder: (context) {
+              return AddTodoPopupCard(
+                  textCtrl: textCtrl,
+                  onSave: (text) {
+                    setState(() {
+                      items.add(ToDoItem(
+                        text,
+                        order: items
+                                .reduce((value, element) =>
+                                    element.order > value.order
+                                        ? element
+                                        : value)
+                                .order +
+                            1,
+                      ));
+                    });
+                    updateList();
+                    textCtrl.text = '';
+                    Navigator.of(context).pop();
+                  });
+            }));
+          },
+          child: Hero(
+            tag: 'add-todo-hero',
+            child: Material(
+              color: Colors.grey.shade800,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(32),
+                  side: const BorderSide(
+                    width: 3,
+                    color: Color(0x99FFFFFF),
+                  )),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
