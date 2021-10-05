@@ -38,7 +38,7 @@ class ToDoItem {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<ToDoItem> items = [
-    ToDoItem('A', order: 0, checked: true),
+    ToDoItem('A', order: 0),
     ToDoItem('B', order: 1),
     ToDoItem('C', order: 2),
   ];
@@ -59,6 +59,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   final textCtrl = TextEditingController();
+
+  openPopupCard(void Function(String) onSave) {
+    Navigator.of(context).push(HeroDialogRoute(
+      builder: (context) {
+        return AddTodoPopupCard(
+          textCtrl: textCtrl,
+          onSave: (text) {
+            onSave(text);
+            updateList();
+            textCtrl.text = '';
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,11 +102,71 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              trailing: IconButton(
-                  onPressed: () {
-                    print('More icon');
-                  },
-                  icon: Icon(Icons.more_vert)),
+              trailing: PopupMenuButton<String>(
+                onSelected: (t) {
+                  switch (t) {
+                    case 'editar':
+                      this.textCtrl.text = e.text;
+                      openPopupCard((text) {
+                        this
+                            .items
+                            .firstWhere((element) => element.order == e.order)
+                            .text = text;
+                      });
+                      break;
+                    case 'borrar':
+                      this
+                          .items
+                          .removeWhere((element) => element.order == e.order);
+                      updateList();
+                      break;
+                  }
+                },
+                icon: Icon(Icons.more_vert),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  side: BorderSide(color: Color(0x99FFFFFF), width: 2),
+                ),
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'editar',
+                      height: 12,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.edit, color: Colors.white),
+                          Text(
+                            'Editar',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuDivider(
+                      height: 8,
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'borrar',
+                      height: 12,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          Text(
+                            'Borrar',
+                            style: TextStyle(color: Colors.red),
+                          )
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+                color: Colors.grey.shade700,
+              ),
               onTap: () {
                 e.checked = !e.checked;
                 updateList();
@@ -100,29 +176,12 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(right: 14.0),
         child: GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(HeroDialogRoute(builder: (context) {
-              return AddTodoPopupCard(
-                  textCtrl: textCtrl,
-                  onSave: (text) {
-                    setState(() {
-                      items.add(ToDoItem(
-                        text,
-                        order: items
-                                .reduce((value, element) =>
-                                    element.order > value.order
-                                        ? element
-                                        : value)
-                                .order +
-                            1,
-                      ));
-                    });
-                    updateList();
-                    textCtrl.text = '';
-                    Navigator.of(context).pop();
-                  });
-            }));
-          },
+          onTap: () => openPopupCard((text) => items.add(ToDoItem(text,
+              order: items
+                      .reduce((value, element) =>
+                          element.order > value.order ? element : value)
+                      .order +
+                  1))),
           child: Hero(
             tag: 'add-todo-hero',
             child: Material(

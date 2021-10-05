@@ -37,7 +37,7 @@ class AddTodoPopupCard extends StatelessWidget {
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: Color(0x39FFFFFF),
-                                  hintText: 'Write here your new item...',
+                                  hintText: 'Escribe aqui una tarea',
                                   focusedBorder: const OutlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Color(0x99FFFFFF),
@@ -50,8 +50,23 @@ class AddTodoPopupCard extends StatelessWidget {
                                       width: 1,
                                     ),
                                   ),
+                                  hintStyle: TextStyle(
+                                    color: Color(0x99FFFFFF),
+                                  ),
                                 ),
+                                cursorColor: Colors.white,
+                                controller: textCtrl,
                               )),
+                          ElevatedButton(
+                            onPressed: () => onSave(textCtrl.text),
+                            child: const Text(
+                              'Guardar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       ))),
             )),
